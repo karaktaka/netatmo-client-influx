@@ -1,11 +1,11 @@
 version: '2'
 services:
-    grafana-netatmo:
+    netatmo-client-influx:
       build:
         context: .
         dockerfile: Dockerfile
-      image: local/grafana-netatmo
-      container_name: grafana-netatmo
+      image: local/netatmo-client-influx
+      container_name: netatmo-client-influx
       restart: unless-stopped
       environment:
         - NETATMO_CLIENT_ID=
