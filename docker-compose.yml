@@ -2,7 +2,7 @@ version: '2'
 services:
     netatmo-client-influx:
       image: karaktaka/netatmo-client-influx
-      container_name: netatmo-client-influx
+      container_name: netatmo-netatmo-client-influx
       restart: unless-stopped
       environment:
         - NETATMO_CLIENT_ID=

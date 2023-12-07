@@ -21,7 +21,7 @@ jobs:
         pip install flake8 black
     - name: Lint with flake8
       run: |
-        flake8 grafana_netatmo --count --max-line-length=127 --statistics
+        flake8 netatmo-client --count --max-line-length=127 --statistics
     - name: Lint with black
       run: |
-        black -t py311 -l 120 --check --diff grafana_netatmo
+        black -t py311 -l 120 --check --diff netatmo-client
