@@ -1,8 +1,8 @@
 version: '2'
 services:
-    grafana-netatmo:
-      image: karaktaka/grafana-netatmo
-      container_name: grafana-netatmo
+    netatmo-client-influx:
+      image: karaktaka/netatmo-client-influx
+      container_name: netatmo-netatmo-client-influx
       restart: unless-stopped
       environment:
         - NETATMO_CLIENT_ID=

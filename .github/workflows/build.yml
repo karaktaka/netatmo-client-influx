@@ -20,7 +20,7 @@ jobs:
         id: docker_meta
         uses: docker/metadata-action@v4
         with:
-          images: ghcr.io/karaktaka/grafana-netatmo
+          images: ghcr.io/karaktaka/netatmo-client-influx
           tags: |
             type=ref,event=branch
             type=ref,event=tag
