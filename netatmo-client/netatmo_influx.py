@@ -39,7 +39,7 @@ def parse_config(config_file=None):
     _config = configparser.ConfigParser(interpolation=None)
 
     if config_file is None:
-        config_file = Path("config")
+        config_file = Path("config.ini")
 
     if config_file.exists():
         _config.read(config_file)
@@ -113,7 +113,7 @@ def get_authorization() -> Tuple[NetatmoOAuth2, str]:
             logger.error(f"Can't connect to Netatmo API. Retrying in {interval} second(s)...")
             pass
         except InvalidGrantError:
-            logger.error(f"Refresh Token expired!")
+            logger.error("Refresh Token expired!")
             exit(1)
 
 
@@ -182,15 +182,15 @@ if __name__ == "__main__":
             weatherData.update()
 
             with InfluxDBClient(
-                    url=f"{influx_protocol}://{influx_host}:{influx_port}",
-                    token=influx_token,
-                    org=influx_org,
-                    debug=influx_debug,
+                url=f"{influx_protocol}://{influx_host}:{influx_port}",
+                token=influx_token,
+                org=influx_org,
+                debug=influx_debug,
             ) as _client:
                 with _client.write_api(
-                        success_callback=influx_callback.success,
-                        error_callback=influx_callback.error,
-                        retry_callback=influx_callback.retry,
+                    success_callback=influx_callback.success,
+                    error_callback=influx_callback.error,
+                    retry_callback=influx_callback.retry,
                 ) as _write_client:
                     for station_id in weatherData.stations:
                         station_data = []
@@ -214,7 +214,7 @@ if __name__ == "__main__":
                             if not module:
                                 for measurement in ["altitude", "country", "longitude", "latitude", "timezone"]:
                                     value = eval(measurement)
-                                    if type(value) == int:
+                                    if type(value) is int:
                                         value = float(value)
                                     station_data.append(
                                         {
@@ -229,7 +229,7 @@ if __name__ == "__main__":
                                 if sensor.lower() == "wifi_status":
                                     sensor = "rf_status"
                                 if sensor.lower() != "when":
-                                    if type(value) == int:
+                                    if type(value) is int:
                                         value = float(value)
                                     module_data.append(
                                         {
@@ -247,13 +247,9 @@ if __name__ == "__main__":
                         now = datetime.utcnow()
                         strtime = now.strftime("%Y-%m-%d %H:%M:%S")
 
-                        _write_client.write(
-                            influx_bucket, influx_org, station_data, write_precision=WritePrecision.S
-                        )
+                        _write_client.write(influx_bucket, influx_org, station_data, write_precision=WritePrecision.S)
 
-                        _write_client.write(
-                            influx_bucket, influx_org, module_data, write_precision=WritePrecision.S
-                        )
+                        _write_client.write(influx_bucket, influx_org, module_data, write_precision=WritePrecision.S)
         except ApiError as error:
             logger.error(error)
             pass
