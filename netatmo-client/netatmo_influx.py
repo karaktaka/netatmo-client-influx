@@ -124,6 +124,7 @@ if __name__ == "__main__":
     running = True
     interval = None
     loglevel = None
+    debug_batch = False
     client_id = None
     client_secret = None
     refresh_token = None
