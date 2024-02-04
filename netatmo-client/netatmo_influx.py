@@ -21,18 +21,21 @@ from typing import Tuple
 class BatchingCallback(object):
     @staticmethod
     def success(conf: (str, str, str), data: str):
-        logger.info(f"Written batch with size {len(data)}.")
-        logger.debug(f"Batch: {conf}, Data: {data}")
+        log.info(f"Written batch with size {len(data)}.")
+        if influx_debug:
+            log.debug(f"Batch: {conf}, Data: {data}")
 
     @staticmethod
     def error(conf: (str, str, str), data: str, exception: InfluxDBError):
-        logger.error(f"Cannot write batch due: {exception}")
-        logger.debug(f"Batch: {conf}, Data: {data}, Exception: {exception}")
+        log.error(f"Cannot write batch due: {exception}")
+        if influx_debug:
+            log.debug(f"Batch: {conf}, Data: {data}, Exception: {exception}")
 
     @staticmethod
     def retry(conf: (str, str, str), data: str, exception: InfluxDBError):
-        logger.warning(f"Retryable error occurs for batch, retry: {exception}")
-        logger.debug(f"Batch: {conf}, Data: {data}, Exception: {exception}")
+        log.warning(f"Retryable error occurs for batch, retry: {exception}")
+        if influx_debug:
+            log.debug(f"Batch: {conf}, Data: {data}, Exception: {exception}")
 
 
 def parse_config(config_file=None):
@@ -107,13 +110,13 @@ def get_authorization() -> Tuple[NetatmoOAuth2, str]:
 
             return auth, result.get("refresh_token")
         except ApiError:
-            logger.error("No credentials supplied. No Netatmo Account available.")
+            log.error("No credentials supplied. No Netatmo Account available.")
             exit(1)
         except ConnectionError:
-            logger.error(f"Can't connect to Netatmo API. Retrying in {interval} second(s)...")
+            log.error(f"Can't connect to Netatmo API. Retrying in {interval} second(s)...")
             pass
         except InvalidGrantError:
-            logger.error("Refresh Token expired!")
+            log.error("Refresh Token expired!")
             exit(1)
 
 
@@ -128,6 +131,7 @@ if __name__ == "__main__":
     running = True
     interval = None
     loglevel = None
+    debug_batch = False
     client_id = None
     client_secret = None
     refresh_token = None
@@ -149,6 +153,7 @@ if __name__ == "__main__":
     if "global" in config:
         interval = int(config["global"].get("interval", "300"))  # interval in seconds; default are 5 Minutes
         loglevel = config["global"].get("loglevel", "INFO")  # set loglevel by Name
+        debug_batch = config["global"].get("debug_batch", False)  # set loglevel for batching (influx)
 
     if "netatmo" in config:
         client_id = config["netatmo"].get("client_id", None)
@@ -175,13 +180,14 @@ if __name__ == "__main__":
     influx_org = get_environ("INFLUX_ORG", influx_org)
     interval = int(get_environ("INTERVAL", interval))
     loglevel = get_environ("LOGLEVEL", loglevel)
+    debug_batch = get_environ("DEBUG_BATCH", debug_batch)
 
     # set logging level
-    logger = set_logging_level(args.verbosity, loglevel)
-    if loglevel == "DEBUG" or args.verbosity == 3:
+    log = set_logging_level(args.verbosity, loglevel)
+    if (loglevel == "DEBUG" or args.verbosity == 3) and debug_batch:
         influx_debug = True
 
-    logger.info("Starting Netatmo Crawler...")
+    log.info("Starting Netatmo Crawler...")
     while running:
         authorization, refresh_token = get_authorization()
         try:
@@ -207,6 +213,9 @@ if __name__ == "__main__":
                         station_name = station.get("station_name", "Unknown")
                         station_module_name = station.get("module_name", "Unknown")
                         station_long_lat = station.get("place", {}).get("location", [])
+                        log.debug(f"Station: {station}")
+                        log.debug(f"Station Name: {station_name}")
+                        log.debug(f"Station Module Name: {station_module_name}")
 
                         altitude = station.get("place", {}).get("altitude")
                         country = station.get("place", {}).get("country")
@@ -216,8 +225,11 @@ if __name__ == "__main__":
 
                         for module_id, moduleData in weatherData.get_last_data(station_id).items():
                             module = weatherData.get_module(module_id)
+                            log.debug(f"Module: {module}")
                             module_name = module.get("module_name") if module else station.get("module_name")
+                            log.debug(f"Module Name: {module_name}")
                             module_data_type = safe_list_get(module.get("data_type"), 0) if module else safe_list_get(station.get("data_type"), 0)
+                            log.debug(f"Module Data: {moduleData}")
 
                             if not module:
                                 for measurement in ["altitude", "country", "longitude", "latitude", "timezone"]:
@@ -259,7 +271,7 @@ if __name__ == "__main__":
 
                         _write_client.write(influx_bucket, influx_org, module_data, write_precision=WritePrecision.S)
         except ApiError as error:
-            logger.error(error)
+            log.error(error)
             pass
 
         sleep(interval)
