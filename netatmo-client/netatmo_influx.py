@@ -120,11 +120,11 @@ def get_authorization() -> Tuple[NetatmoOAuth2, str]:
             exit(1)
 
 
-def safe_list_get (l, idx, default = None):
-  try:
-    return l[idx]
-  except IndexError:
-    return default
+def safe_list_get(input_list, idx, default=None):
+    try:
+        return input_list[idx]
+    except IndexError:
+        return default
 
 
 if __name__ == "__main__":
@@ -228,7 +228,11 @@ if __name__ == "__main__":
                             log.debug(f"Module: {module}")
                             module_name = module.get("module_name") if module else station.get("module_name")
                             log.debug(f"Module Name: {module_name}")
-                            module_data_type = safe_list_get(module.get("data_type"), 0) if module else safe_list_get(station.get("data_type"), 0)
+                            module_data_type = (
+                                safe_list_get(module.get("data_type"), 0)
+                                if module
+                                else safe_list_get(station.get("data_type"), 0)
+                            )
                             log.debug(f"Module Data: {moduleData}")
 
                             if not module:
