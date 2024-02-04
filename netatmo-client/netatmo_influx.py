@@ -120,6 +120,13 @@ def get_authorization() -> Tuple[NetatmoOAuth2, str]:
             exit(1)
 
 
+def safe_list_get(input_list, idx, default=None):
+    try:
+        return input_list[idx]
+    except IndexError:
+        return default
+
+
 if __name__ == "__main__":
     running = True
     interval = None
@@ -203,24 +210,29 @@ if __name__ == "__main__":
                         module_data = []
 
                         station = weatherData.get_station(station_id)
-                        station_name = station["station_name"]
-                        station_module_name = station["module_name"]
+                        station_name = station.get("station_name", "Unknown")
+                        station_module_name = station.get("module_name", "Unknown")
+                        station_long_lat = station.get("place", {}).get("location", [])
                         log.debug(f"Station: {station}")
                         log.debug(f"Station Name: {station_name}")
                         log.debug(f"Station Module Name: {station_module_name}")
 
-                        altitude = station["place"]["altitude"]
-                        country = station["place"]["country"]
-                        timezone = station["place"]["timezone"]
-                        longitude = station["place"]["location"][0]
-                        latitude = station["place"]["location"][1]
+                        altitude = station.get("place", {}).get("altitude")
+                        country = station.get("place", {}).get("country")
+                        timezone = station.get("place", {}).get("timezone")
+                        longitude = safe_list_get(station_long_lat, 0)
+                        latitude = safe_list_get(station_long_lat, 1)
 
                         for module_id, moduleData in weatherData.get_last_data(station_id).items():
                             module = weatherData.get_module(module_id)
                             log.debug(f"Module: {module}")
-                            module_name = module["module_name"] if module else station["module_name"]
+                            module_name = module.get("module_name") if module else station.get("module_name")
                             log.debug(f"Module Name: {module_name}")
-                            module_data_type = module["data_type"][0] if module else station["data_type"][0]
+                            module_data_type = (
+                                safe_list_get(module.get("data_type"), 0)
+                                if module
+                                else safe_list_get(station.get("data_type"), 0)
+                            )
                             log.debug(f"Module Data: {moduleData}")
 
                             if not module:
