@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # encoding=utf-8
 
+import sys
 import signal
 import logging
 import argparse
@@ -27,13 +28,13 @@ class BatchingCallback(object):
 
     @staticmethod
     def error(conf: (str, str, str), data: str, exception: InfluxDBError):
-        log.error(f"Cannot write batch due: {exception}")
+        log.error(f"Cannot write batch due: {exception.response.status} - {exception.response.reason}")
         if influx_debug:
             log.debug(f"Batch: {conf}, Data: {data}, Exception: {exception}")
 
     @staticmethod
     def retry(conf: (str, str, str), data: str, exception: InfluxDBError):
-        log.warning(f"Retryable error occurs for batch, retry: {exception}")
+        log.warning(f"Retryable error occurs for batch, retry: {exception.response.status} - {exception.response.reason}")
         if influx_debug:
             log.debug(f"Batch: {conf}, Data: {data}, Exception: {exception}")
 
@@ -66,7 +67,7 @@ def get_environ(name, def_val):
     return env_val
 
 
-def set_logging_level(verbosity, level):
+def set_logging_level(verbosity, level, logger=None):
     switcher = {
         1: "WARNING",
         2: "INFO",
@@ -81,7 +82,10 @@ def set_logging_level(verbosity, level):
     pyatmo.helpers.LOG.setLevel(level)
 
     # Logger
-    _logger = logging.getLogger(__name__)
+    if logger is None:
+        _logger = logging.getLogger(__name__)
+    else:
+        _logger = logger
 
     ch = logging.StreamHandler()
     ch.setFormatter(fmt)
@@ -153,7 +157,7 @@ if __name__ == "__main__":
     if "global" in config:
         interval = int(config["global"].get("interval", "300"))  # interval in seconds; default are 5 Minutes
         loglevel = config["global"].get("loglevel", "INFO")  # set loglevel by Name
-        debug_batch = config["global"].get("debug_batch", False)  # set loglevel for batching (influx)
+        debug_batch = config["global"].get("debug_batch", "False")  # set loglevel for batching (influx)
 
     if "netatmo" in config:
         client_id = config["netatmo"].get("client_id", None)
@@ -184,7 +188,7 @@ if __name__ == "__main__":
 
     # set logging level
     log = set_logging_level(args.verbosity, loglevel)
-    if (loglevel == "DEBUG" or args.verbosity == 3) and debug_batch:
+    if (loglevel == "DEBUG" or args.verbosity == 3) and debug_batch == "True":
         influx_debug = True
 
     log.info("Starting Netatmo Crawler...")
@@ -200,6 +204,10 @@ if __name__ == "__main__":
                 org=influx_org,
                 debug=influx_debug,
             ) as _client:
+                for _, logger in _client.conf.loggers.items():
+                    logger.setLevel(logging.NOTSET)
+                    logger.addHandler(logging.StreamHandler(sys.stderr))
+
                 with _client.write_api(
                     success_callback=influx_callback.success,
                     error_callback=influx_callback.error,
