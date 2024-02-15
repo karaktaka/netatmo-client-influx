@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
 # encoding=utf-8
 
-import sys
-import signal
-import logging
 import argparse
 import configparser
-import pyatmo.helpers
-from time import sleep
+import logging
+import signal
+import sys
+from datetime import datetime, UTC
 from os import environ
 from pathlib import Path
-from datetime import datetime
-from requests import ConnectionError
+from time import sleep
+from typing import Tuple, Optional
+
+import pyatmo.helpers
 from influxdb_client import InfluxDBClient, WritePrecision
 from influxdb_client.client.exceptions import InfluxDBError
-from pyatmo import NetatmoOAuth2, WeatherStationData, ApiError
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
-from typing import Tuple
+from pyatmo import NetatmoOAuth2, WeatherStationData, ApiError
+from requests import ConnectionError
 
 
 class BatchingCallback(object):
@@ -34,19 +35,21 @@ class BatchingCallback(object):
 
     @staticmethod
     def retry(conf: (str, str, str), data: str, exception: InfluxDBError):
-        log.warning(f"Retryable error occurs for batch, retry: {exception.response.status} - {exception.response.reason}")
+        log.warning(
+            f"Retryable error occurs for batch, retry: {exception.response.status} - {exception.response.reason}"
+        )
         if influx_debug:
             log.debug(f"Batch: {conf}, Data: {data}, Exception: {exception}")
 
 
-def parse_config(config_file=None):
+def parse_config(_config_file=None):
     _config = configparser.ConfigParser(interpolation=None)
 
-    if config_file is None:
-        config_file = Path("config.ini")
+    if _config_file is None:
+        _config_file = Path("config.ini")
 
-    if config_file.exists():
-        _config.read(config_file)
+    if _config_file.exists():
+        _config.read(_config_file)
 
     return _config
 
@@ -59,40 +62,38 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_environ(name, def_val):
-    env_val = def_val
-    if environ.get(name):
-        env_val = environ.get(name)
+def get_environ(_name, _def_val):
+    _env_val = _def_val
+    if environ.get(_name):
+        _env_val = environ.get(_name)
 
-    return env_val
+    return _env_val
 
 
-def set_logging_level(verbosity, level, logger=None):
-    switcher = {
+def set_logging_level(_verbosity, _level, _logger=None):
+    _switcher = {
         1: "WARNING",
         2: "INFO",
         3: "DEBUG",
     }
-    if verbosity > 0:
-        level = switcher.get(verbosity)
+    if _verbosity > 0:
+        _level = _switcher.get(_verbosity)
 
-    fmt = logging.Formatter("%(asctime)s - %(levelname)s:%(message)s", datefmt="%d.%m.%Y %H:%M:%S")
+    _fmt = logging.Formatter("%(asctime)s - %(levelname)s:%(message)s", datefmt="%d.%m.%Y %H:%M:%S")
 
     # Basic Setting for Debugging
-    pyatmo.helpers.LOG.setLevel(level)
+    pyatmo.helpers.LOG.setLevel(_level)
 
     # Logger
-    if logger is None:
+    if _logger is None:
         _logger = logging.getLogger(__name__)
-    else:
-        _logger = logger
 
-    ch = logging.StreamHandler()
-    ch.setFormatter(fmt)
+    _ch = logging.StreamHandler()
+    _ch.setFormatter(_fmt)
 
-    _logger.addHandler(ch)
-    _logger.setLevel(level)
-    _logger.info(f"Setting loglevel to {level}.")
+    _logger.addHandler(_ch)
+    _logger.setLevel(_level)
+    _logger.info(f"Setting loglevel to {_level}.")
 
     return _logger
 
@@ -102,17 +103,17 @@ def shutdown(_signal):
     running = False
 
 
-def get_authorization() -> Tuple[NetatmoOAuth2, str]:
+def get_authorization(_client_id: str, _client_secret: str, _refresh_token: str) -> Tuple[NetatmoOAuth2, str]:
     while True:
         try:
-            auth = NetatmoOAuth2(
-                client_id=client_id,
-                client_secret=client_secret,
+            _auth = NetatmoOAuth2(
+                client_id=_client_id,
+                client_secret=_client_secret,
             )
-            auth.extra["refresh_token"] = refresh_token
-            result = auth.refresh_tokens()
+            _auth.extra["refresh_token"] = _refresh_token
+            _result = _auth.refresh_tokens()
 
-            return auth, result.get("refresh_token")
+            return _auth, _result.get("refresh_token")
         except ApiError:
             log.error("No credentials supplied. No Netatmo Account available.")
             exit(1)
@@ -124,11 +125,44 @@ def get_authorization() -> Tuple[NetatmoOAuth2, str]:
             exit(1)
 
 
-def safe_list_get(input_list, idx, default=None):
+def safe_list_get(_input_list: list, _idx: int, _default=None) -> Optional[str | int | float]:
     try:
-        return input_list[idx]
+        return _input_list[_idx]
     except IndexError:
-        return default
+        return _default
+
+
+def get_sensor_data(_sensor_data: dict, _station_name: str, _module_name: str, _module_type: str) -> list:
+    _measurements = []
+    _date_times = {}
+
+    if _sensor_data is not None:
+        _time = _sensor_data.pop("time_utc")
+        if _module_type == "NAModule2":
+            _date_times = {"date_max_wind_str": _sensor_data.pop("date_max_wind_str")}
+        if _module_type not in ["NAModule3", "NAModule2"]:
+            _date_times = {
+                "date_max_temp": _sensor_data.pop("date_max_temp"),
+                "date_min_temp": _sensor_data.pop("date_min_temp"),
+            }
+        for _sensor, _value in _sensor_data.items():
+            _measurements.append(
+                {
+                    "measurement": _sensor.lower() if _sensor.lower() != "wifi_status" else "rf_status",
+                    "tags": {"station": _station_name, "module": _module_name, "type": _module_type},
+                    "fields": {"value": check_value(_value)},
+                    "time": _time
+                    if _sensor not in ["max_temp", "min_temp", "max_wind_str"]
+                    else _date_times.get(f"date_{_sensor}"),
+                }
+            )
+    return _measurements
+
+
+def check_value(_val: [float | int | str]) -> [float | str]:
+    if type(_val) is int:
+        return float(_val)
+    return _val
 
 
 if __name__ == "__main__":
@@ -193,7 +227,7 @@ if __name__ == "__main__":
 
     log.info("Starting Netatmo Crawler...")
     while running:
-        authorization, refresh_token = get_authorization()
+        authorization, refresh_token = get_authorization(client_id, client_secret, refresh_token)
         try:
             weatherData = WeatherStationData(authorization)
             weatherData.update()
@@ -203,85 +237,68 @@ if __name__ == "__main__":
                 token=influx_token,
                 org=influx_org,
                 debug=influx_debug,
-            ) as _client:
-                for _, logger in _client.conf.loggers.items():
+            ) as client:
+                for _, logger in client.conf.loggers.items():
                     logger.setLevel(logging.NOTSET)
                     logger.addHandler(logging.StreamHandler(sys.stderr))
 
-                with _client.write_api(
+                with client.write_api(
                     success_callback=influx_callback.success,
                     error_callback=influx_callback.error,
                     retry_callback=influx_callback.retry,
-                ) as _write_client:
-                    for station_id in weatherData.stations:
-                        station_data = []
-                        module_data = []
+                ) as write_client:
+                    for station in weatherData.stations.values():
+                        measurements: list[dict] = []
 
-                        station = weatherData.get_station(station_id)
-                        station_name = station.get("station_name", "Unknown")
+                        log.debug(f"Station Data: {station}")
+                        station_name = station.get("home_name", "Unknown")
                         station_module_name = station.get("module_name", "Unknown")
-                        station_long_lat = station.get("place", {}).get("location", [])
-                        log.debug(f"Station: {station}")
-                        log.debug(f"Station Name: {station_name}")
-                        log.debug(f"Station Module Name: {station_module_name}")
+                        station_module_type = station.get("type", "Unknown")
+                        station_place = station.get("place", {})
+                        station_long_lat = station_place.get("location", [])
 
-                        altitude = station.get("place", {}).get("altitude")
-                        country = station.get("place", {}).get("country")
-                        timezone = station.get("place", {}).get("timezone")
-                        longitude = safe_list_get(station_long_lat, 0)
-                        latitude = safe_list_get(station_long_lat, 1)
+                        station_data = {
+                            "altitude": station_place.get("altitude"),
+                            "country": station_place.get("country"),
+                            "timezone": station_place.get("timezone"),
+                            "longitude": safe_list_get(station_long_lat, 0),
+                            "latitude": safe_list_get(station_long_lat, 1),
+                        }
 
-                        for module_id, moduleData in weatherData.get_last_data(station_id).items():
-                            module = weatherData.get_module(module_id)
-                            log.debug(f"Module: {module}")
-                            module_name = module.get("module_name") if module else station.get("module_name")
-                            log.debug(f"Module Name: {module_name}")
-                            module_data_type = (
-                                safe_list_get(module.get("data_type"), 0)
-                                if module
-                                else safe_list_get(station.get("data_type"), 0)
+                        for key, value in station_data.items():
+                            measurements.append(
+                                {
+                                    "measurement": key,
+                                    "tags": {"station": station_name, "type": station_module_type},
+                                    "fields": {"value": check_value(value)},
+                                    "time": int(datetime.now(UTC).timestamp()),
+                                }
                             )
-                            log.debug(f"Module Data: {moduleData}")
 
-                            if not module:
-                                for measurement in ["altitude", "country", "longitude", "latitude", "timezone"]:
-                                    value = eval(measurement)
-                                    if type(value) is int:
-                                        value = float(value)
-                                    station_data.append(
-                                        {
-                                            "measurement": measurement,
-                                            "tags": {"station": station_name, "module": module_name},
-                                            "fields": {"value": value},
-                                            "time": moduleData["When"],
-                                        }
-                                    )
+                        station_sensor_data = station.get("dashboard_data")
 
-                            for sensor, value in moduleData.items():
-                                if sensor.lower() == "wifi_status":
-                                    sensor = "rf_status"
-                                if sensor.lower() != "when":
-                                    if type(value) is int:
-                                        value = float(value)
-                                    module_data.append(
-                                        {
-                                            "measurement": sensor.lower(),
-                                            "tags": {
-                                                "station": station_name,
-                                                "module": module_name,
-                                                "data_type": module_data_type,
-                                            },
-                                            "fields": {"value": value},
-                                            "time": moduleData["When"],
-                                        }
-                                    )
+                        for sensor in ["wifi_status", "reachable", "co2_calibrating"]:
+                            station_sensor_data.update({sensor: station.get(sensor)})
 
-                        now = datetime.utcnow()
-                        strtime = now.strftime("%Y-%m-%d %H:%M:%S")
+                        measurements += get_sensor_data(
+                            station_sensor_data, station_name, station_module_name, station_module_type
+                        )
 
-                        _write_client.write(influx_bucket, influx_org, station_data, write_precision=WritePrecision.S)
+                        for module in station.get("modules"):
+                            log.debug(f"Module Data: {module}")
+                            module_name = module.get("module_name")
+                            module_type = module.get("type")
 
-                        _write_client.write(influx_bucket, influx_org, module_data, write_precision=WritePrecision.S)
+                            module_sensor_data = module.get("dashboard_data")
+
+                            for sensor in ["rf_status", "battery_vp", "battery_percent"]:
+                                module_sensor_data.update({sensor: module.get(sensor)})
+
+                            measurements += get_sensor_data(module_sensor_data, station_name, module_name, module_type)
+
+                        write_client.write(
+                            bucket=influx_bucket, org=influx_org, record=measurements, write_precision=WritePrecision.S
+                        )
         except ApiError as error:
             log.error(error)
             pass
