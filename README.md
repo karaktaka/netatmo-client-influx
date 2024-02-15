@@ -20,7 +20,7 @@ If you want to upgrade your Docker InfluxDB to 2.0, there is a guide available [
 
 ```ini
 [global]
-interval = 300
+interval = 600
 loglevel = INFO
 
 [netatmo]
@@ -41,7 +41,7 @@ influx_org =
 
 ```bash
 # cat /etc/cron.d/netatmo
-*/5 * * * * root  /usr/local/bin/netatmo_influx.py > /dev/null 2>&1
+*/10 * * * * root  /usr/local/bin/netatmo_influx.py > /dev/null 2>&1
 ```
 
-You can also use docker to run the script. Either build it yourself or use my prebuild containers from [Github Container Registry](https://github.com/karaktaka/netatmo-client-influx/pkgs/container/netatmo-client-influx).
+You can also use docker to run the script. Either build it yourself or use my prebuilt containers from [GitHub Container Registry](https://github.com/karaktaka/netatmo-client-influx/pkgs/container/netatmo-client-influx).

@@ -1,5 +1,5 @@
 [global]
-interval = 300
+interval = 600
 loglevel = INFO
 
 [netatmo]
