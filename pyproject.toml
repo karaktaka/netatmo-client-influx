@@ -7,13 +7,13 @@ readme = "README.md"
 packages = [{include = "netatmo-client"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
-pyatmo = "^7.6.0,<8.0.0"
-influxdb-client = "^1.39.0"
+python = "^3.12"
+pyatmo = "^7.6,<8"
+influxdb-client = "^1.40"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
-flake8 = "^6.0.0"
+black = "*"
+flake8 = "*"
 
 [build-system]
 requires = ["poetry-core"]
