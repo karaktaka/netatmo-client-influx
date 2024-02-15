@@ -1,20 +1,19 @@
-version: '2'
+version: '3'
+
 services:
-    netatmo-client-influx:
-      image: karaktaka/netatmo-client-influx
-      container_name: netatmo-netatmo-client-influx
-      restart: unless-stopped
-      environment:
-        - NETATMO_CLIENT_ID=
-        - NETATMO_CLIENT_SECRET=
-        - NETATMO_USERNAME=
-        - NETATMO_PASSWORD=
-        - INFLUX_HOST=localhost
-        - INFLUX_PORT=8086
-        - INFLUX_DB=
-        - INFLUX_SSL=
-        - INFLUX_USERNAME=
-        - INFLUX_PASSWORD=
-        - INTERVAL=300
-        - LOGLEVEL=INFO
-      network_mode: "host"
+  netatmo-influx:
+    image: ghcr.io/karaktaka/netatmo-client-influx
+    container_name: netatmo-influx
+    restart: unless-stopped
+    environment:
+      - NETATMO_CLIENT_ID=
+      - NETATMO_CLIENT_SECRET=
+      - NETATMO_REFRESH_TOKEN=
+      - INFLUX_HOST=
+      - INFLUX_PORT=
+      - INFLUX_BUCKET=
+      - INFLUX_PROTOCOL=
+      - INFLUX_TOKEN=
+      - INFLUX_ORG=
+      - INTERVAL=600
+      - LOGLEVEL=INFO

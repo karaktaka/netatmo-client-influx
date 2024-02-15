@@ -1,19 +1,19 @@
 [tool.poetry]
 name = "netatmo-client-influx"
-version = "3.3.1"
+version = "3.5.0"
 description = "A basic crawler for netatmo api"
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 packages = [{include = "netatmo-client"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
-pyatmo = "^7.6.0"
-influxdb-client = "^1.39.0"
+python = "^3.12"
+pyatmo = "^7.6,<8"
+influxdb-client = "^1.40"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
-flake8 = "^6.0.0"
+black = "*"
+flake8 = "*"
 
 [build-system]
 requires = ["poetry-core"]
