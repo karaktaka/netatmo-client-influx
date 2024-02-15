@@ -151,9 +151,11 @@ def get_sensor_data(_sensor_data: dict, _station_name: str, _module_name: str, _
                     "measurement": _sensor.lower() if _sensor.lower() != "wifi_status" else "rf_status",
                     "tags": {"station": _station_name, "module": _module_name, "type": _module_type},
                     "fields": {"value": check_value(_value)},
-                    "time": _time
-                    if _sensor not in ["max_temp", "min_temp", "max_wind_str"]
-                    else _date_times.get(f"date_{_sensor}"),
+                    "time": (
+                        _time
+                        if _sensor not in ["max_temp", "min_temp", "max_wind_str"]
+                        else _date_times.get(f"date_{_sensor}")
+                    ),
                 }
             )
     return _measurements
@@ -185,7 +187,9 @@ if __name__ == "__main__":
     config = parse_config(args.config)
 
     if get_environ("TERM", None):
+        # noinspection PyTypeChecker
         signal.signal(signal.SIGTERM, shutdown)
+        # noinspection PyTypeChecker
         signal.signal(signal.SIGINT, shutdown)
 
     if "global" in config:
@@ -248,7 +252,7 @@ if __name__ == "__main__":
                     retry_callback=influx_callback.retry,
                 ) as write_client:
                     for station in weatherData.stations.values():
-                        measurements: list[dict] = []
+                        measurements = []
 
                         log.debug(f"Station Data: {station}")
                         station_name = station.get("home_name", "Unknown")
@@ -296,6 +300,7 @@ if __name__ == "__main__":
 
                             measurements += get_sensor_data(module_sensor_data, station_name, module_name, module_type)
 
+                        # noinspection PyTypeChecker
                         write_client.write(
                             bucket=influx_bucket, org=influx_org, record=measurements, write_precision=WritePrecision.S
                         )
