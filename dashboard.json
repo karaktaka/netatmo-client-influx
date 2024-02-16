@@ -721,7 +721,7 @@
           "measurement": "co2",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"co2\")\r\n  |> filter(fn: (r) => r[\"module\"] =~ /${temp_module:pipe}/)\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"mean\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"co2\")\r\n  |> filter(fn: (r) => r[\"module\"] =~ /${temp_module:pipe}/)\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"mean\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -871,7 +871,7 @@
           "measurement": "co2",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"temperature\")\r\n  |> filter(fn: (r) => r[\"module\"] =~ /${temp_module:pipe}/)\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"mean\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"temperature\")\r\n  |> filter(fn: (r) => r[\"module\"] =~ /${temp_module:pipe}/)\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"mean\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -1024,7 +1024,7 @@
           "measurement": "pressure",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"pressure\")\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"mean\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"pressure\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"mean\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -1153,7 +1153,7 @@
           "measurement": "pressure_trend",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"pressure_trend\")\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> rename(columns: {_value: \"Trend\"})\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"pressure_trend\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> rename(columns: {_value: \"Trend\"})\r\n  |> yield(name: \"last\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -1334,7 +1334,7 @@
           "measurement": "temperature",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"temperature\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"temperature\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"last\")",
           "rawQuery": false,
           "refId": "A",
           "resultFormat": "time_series",
@@ -1472,7 +1472,7 @@
           "measurement": "temperature",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "  from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"temperature\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "query": "  from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"temperature\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -1558,6 +1558,7 @@
         "x": 15,
         "y": 13
       },
+      "hideTimeOverride": true,
       "id": 30,
       "links": [],
       "maxDataPoints": 100,
@@ -1609,7 +1610,7 @@
           "measurement": "max_temp",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"max_temp\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"max_temp\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> rename(columns: {_value: \"Trend\"})\r\n  |> yield(name: \"last\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -1641,6 +1642,7 @@
           ]
         }
       ],
+      "timeFrom": "24h",
       "title": "Max",
       "transparent": true,
       "type": "stat"
@@ -1743,7 +1745,7 @@
           "measurement": "humidity",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"humidity\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"humidity\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -1875,7 +1877,7 @@
           "measurement": "rf_status",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"rf_status\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> map(fn: (r) => ({r with _value: (float(v: r._value) * -1.0)} ))\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"rf_status\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> map(fn: (r) => ({r with _value: (float(v: r._value) * -1.0)} ))\r\n  |> yield(name: \"last\")",
           "rawQuery": false,
           "refId": "A",
           "resultFormat": "time_series",
@@ -2017,7 +2019,7 @@
           "measurement": "battery_percent",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"battery_percent\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"battery_percent\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -2148,7 +2150,7 @@
           "measurement": "temp_trend",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"temp_trend\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> rename(columns: {_value: \"Trend\"})\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"temp_trend\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> rename(columns: {_value: \"Trend\"})\r\n  |> yield(name: \"last\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -2234,6 +2236,7 @@
         "x": 15,
         "y": 16
       },
+      "hideTimeOverride": true,
       "id": 17,
       "links": [],
       "maxDataPoints": 100,
@@ -2285,7 +2288,7 @@
           "measurement": "min_temp",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"min_temp\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${temp_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"min_temp\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> rename(columns: {_value: \"Trend\"})\r\n  |> yield(name: \"last\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -2317,6 +2320,7 @@
           ]
         }
       ],
+      "timeFrom": "24h",
       "title": "Min",
       "transparent": true,
       "type": "stat"
@@ -2460,7 +2464,7 @@
           "measurement": "temperature",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${rain_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"rain\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"mean\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${rain_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"rain\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"mean\")",
           "rawQuery": false,
           "refId": "A",
           "resultFormat": "time_series",
@@ -2591,7 +2595,7 @@
           "measurement": "temperature",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${rain_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"sum_rain_1\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${rain_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"sum_rain_1\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -2623,7 +2627,7 @@
           ]
         }
       ],
-      "timeFrom": "4h",
+      "timeFrom": "2h",
       "title": "Summary (Last Hour)",
       "transparent": true,
       "type": "stat"
@@ -2722,7 +2726,7 @@
           "measurement": "temperature",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${rain_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"sum_rain_24\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${rain_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"sum_rain_24\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -2855,7 +2859,7 @@
           "measurement": "rf_status",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${rain_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"rf_status\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> map(fn: (r) => ({r with _value: (float(v: r._value) * -1.0)} ))\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${rain_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"rf_status\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> map(fn: (r) => ({r with _value: (float(v: r._value) * -1.0)} ))\r\n  |> yield(name: \"last\")",
           "rawQuery": false,
           "refId": "A",
           "resultFormat": "time_series",
@@ -2997,7 +3001,7 @@
           "measurement": "battery_percent",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${rain_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"battery_percent\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${rain_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"battery_percent\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -3173,7 +3177,7 @@
           "measurement": "temperature",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${wind_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"windstrength\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${wind_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"windstrength\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"last\")",
           "rawQuery": false,
           "refId": "A",
           "resultFormat": "time_series",
@@ -3335,7 +3339,7 @@
           "measurement": "temperature",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${wind_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"guststrength\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${wind_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"guststrength\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\", \"module\"])\r\n  |> yield(name: \"last\")",
           "rawQuery": false,
           "refId": "A",
           "resultFormat": "time_series",
@@ -3631,7 +3635,7 @@
           "measurement": "pressure_trend",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${wind_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"windangle\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> rename(columns: {_value: \"Angle\"})\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${wind_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"windangle\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> rename(columns: {_value: \"Angle\"})\r\n  |> yield(name: \"last\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -3921,7 +3925,7 @@
           "measurement": "pressure_trend",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${wind_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"gustangle\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> rename(columns: {_value: \"Angle\"})\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${wind_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"gustangle\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> rename(columns: {_value: \"Angle\"})\r\n  |> yield(name: \"last\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -4048,7 +4052,7 @@
           "measurement": "rf_status",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${wind_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"rf_status\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> map(fn: (r) => ({r with _value: (float(v: r._value) * -1.0)} ))\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${wind_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"rf_status\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> map(fn: (r) => ({r with _value: (float(v: r._value) * -1.0)} ))\r\n  |> yield(name: \"last\")",
           "rawQuery": false,
           "refId": "A",
           "resultFormat": "time_series",
@@ -4190,7 +4194,7 @@
           "measurement": "battery_percent",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"module\"] == \"${wind_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"battery_percent\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "query": "from(bucket: \"netatmo\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"station\"] == \"${station}\")\r\n  |> filter(fn: (r) => r[\"module\"] == \"${wind_module}\")\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"battery_percent\")\r\n  |> sort(columns: [\"_time\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -4233,6 +4237,11 @@
   "templating": {
     "list": [
       {
+        "current": {
+          "selected": false,
+          "text": "default",
+          "value": "default"
+        },
         "hide": 0,
         "includeAll": false,
         "multi": false,
@@ -4268,6 +4277,11 @@
         "useTags": false
       },
       {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "influxdb",
           "uid": "${datasource}"
@@ -4290,6 +4304,11 @@
         "useTags": false
       },
       {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "influxdb",
           "uid": "${datasource}"
@@ -4312,6 +4331,11 @@
         "useTags": false
       },
       {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "influxdb",
           "uid": "${datasource}"
@@ -4367,6 +4391,6 @@
   "timezone": "",
   "title": "Netatmo Weather Station",
   "uid": "A1PR_Kenk",
-  "version": 22,
+  "version": 24,
   "weekStart": ""
 }
