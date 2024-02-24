@@ -6,6 +6,9 @@ on:
       - main
     tags:
       - 'v*'
+  pull_request:
+    branches:
+      - 'main'
 
 jobs:
   build_image:
@@ -48,3 +51,5 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
+          cache-from: type=registry,ref=ghcr.io/karaktaka/netatmo-client-influx:buildcache
+          cache-to: type=registry,ref=ghcr.io/karaktaka/netatmo-client-influx:buildcache,mode=max

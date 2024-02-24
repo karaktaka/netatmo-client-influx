@@ -14,14 +14,12 @@ jobs:
         fetch-depth: 0
     - uses: actions/setup-python@v5
       with:
-        python-version: '3.x'
-    - name: Install linters
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 black
+        python-version: '3.12'
     - name: Lint with flake8
-      run: |
-        flake8 netatmo-client --count --max-line-length=120 --statistics
+      uses: py-actions/flake8@v2
+      with:
+        src: "./netatmo-client"
     - name: Lint with black
-      run: |
-        black -t py311 -l 120 --check --diff netatmo-client
+      uses: psf/black@stable
+      with:
+        src: "./netatmo-client"

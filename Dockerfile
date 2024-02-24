@@ -1,15 +1,28 @@
-FROM python:3.12-alpine
+FROM python:3.12-alpine as base
 
-ENV POETRY_VIRTUALENVS_IN_PROJECT=true
-
-COPY pyproject.toml poetry.lock README.md /app/
-COPY netatmo-client/netatmo_influx.py /app/netatmo-client/
+# Setup env
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONFAULTHANDLER 1
+ENV PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
-RUN apk add --no-cache build-base libffi-dev \
-    && python3 -m pip install --no-cache-dir --trusted-host pypi.python.org poetry==1.7.1 \
-    && poetry install --no-interaction --no-ansi --without dev \
-    && apk del build-base libffi-dev \
-    && rm -rf /var/cache/apk/* ~/.cache/pypoetry ~/.local/share/virtualenv
 
-CMD [ "poetry", "run", "python", "/app/netatmo-client/netatmo_influx.py" ]
+
+FROM base AS venv
+
+ARG categories="packages"
+
+# Install pipenv and compilation dependencies
+RUN pip install pipenv
+ADD Pipfile.lock Pipfile /app/
+RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy --categories ${categories}
+
+
+FROM base as app
+
+COPY --from=venv /app/.venv /app/.venv
+COPY netatmo-client/netatmo_influx.py /app/
+
+CMD [ "python", "netatmo_influx.py" ]
