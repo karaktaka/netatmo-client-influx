@@ -18,7 +18,7 @@ jobs:
     - name: Lint with flake8
       uses: py-actions/flake8@v2
       with:
-        src: "./netatmo-client"
+        path: "./netatmo-client"
     - name: Lint with black
       uses: psf/black@stable
       with:
