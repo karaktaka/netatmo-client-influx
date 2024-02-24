@@ -1,0 +1,15 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pyatmo = ">=7.6,<8"
+influxdb-client = ">=1,<2"
+
+[dev-packages]
+flake8 = "*"
+black = {extras = ["d"], version = "*"}
+
+[requires]
+python_version = "3.12"
