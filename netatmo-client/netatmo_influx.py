@@ -281,6 +281,9 @@ if __name__ == "__main__":
 
                         station_sensor_data = station.get("dashboard_data")
 
+                        if station_sensor_data is None:
+                            continue
+
                         for sensor in ["wifi_status", "reachable", "co2_calibrating"]:
                             station_sensor_data.update({sensor: station.get(sensor)})
 
@@ -294,6 +297,9 @@ if __name__ == "__main__":
                             module_type = module.get("type")
 
                             module_sensor_data = module.get("dashboard_data")
+
+                            if module_sensor_data is None:
+                                continue
 
                             for sensor in ["rf_status", "battery_vp", "battery_percent"]:
                                 module_sensor_data.update({sensor: module.get(sensor)})
