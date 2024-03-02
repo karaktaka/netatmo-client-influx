@@ -298,6 +298,9 @@ if __name__ == "__main__":
 
                             module_sensor_data = module.get("dashboard_data")
 
+                            if module_sensor_data is None:
+                                continue
+
                             for sensor in ["rf_status", "battery_vp", "battery_percent"]:
                                 module_sensor_data.update({sensor: module.get(sensor)})
 
