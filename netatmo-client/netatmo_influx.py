@@ -281,6 +281,9 @@ if __name__ == "__main__":
 
                         station_sensor_data = station.get("dashboard_data")
 
+                        if station_sensor_data is None:
+                            continue
+
                         for sensor in ["wifi_status", "reachable", "co2_calibrating"]:
                             station_sensor_data.update({sensor: station.get(sensor)})
 
