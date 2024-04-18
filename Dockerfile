@@ -27,18 +27,11 @@ RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy --categories ${categories}
 FROM base as app
 
 ARG UID=10001
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid "${UID}" \
-    appuser
+RUN adduser -D -H -h /app -u "${UID}" appuser
 
 USER appuser
 
-COPY --from=venv /app/.venv /app/.venv
-COPY netatmo-client/netatmo_influx.py /app/
+COPY --from=venv --chown=${UID} /app/.venv /app/.venv
+COPY --chown=${UID} netatmo-client/netatmo_influx.py /app/
 
 CMD [ "python", "netatmo_influx.py" ]
