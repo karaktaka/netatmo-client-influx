@@ -138,9 +138,10 @@ def get_sensor_data(_sensor_data: dict, _station_name: str, _module_name: str, _
 
     if _sensor_data is not None:
         _time = _sensor_data.pop("time_utc")
-        if _module_type == "NAModule2":
+        # for the first 5 minutes of each day there is no max* data for neither wind nor temperature sensors
+        if _module_type == "NAModule2" and "max_wind_str" in _sensor_data:
             _date_times = {"date_max_wind_str": _sensor_data.pop("date_max_wind_str")}
-        if _module_type not in ["NAModule3", "NAModule2"]:
+        if _module_type not in ["NAModule3", "NAModule2"] and all(k in _sensor_data for k in ("max_temp", "min_temp")):
             _date_times = {
                 "date_max_temp": _sensor_data.pop("date_max_temp"),
                 "date_min_temp": _sensor_data.pop("date_min_temp"),
