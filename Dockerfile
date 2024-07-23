@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ARG PYTHON_VERSION=3.12
-FROM python:${PYTHON_VERSION}-alpine as base
+FROM python:${PYTHON_VERSION}-alpine AS base
 
 # Setup env
 ENV LANG=C.UTF-8
@@ -24,7 +24,7 @@ ADD Pipfile.lock Pipfile /app/
 RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy --categories ${categories}
 
 
-FROM base as app
+FROM base AS app
 
 ARG UID=10001
 RUN adduser -D -H -h /app -u "${UID}" appuser

@@ -2,14 +2,14 @@
 # encoding=utf-8
 
 import argparse
-import configparser
 import logging
 import signal
 import sys
+from configparser import ConfigParser
 from datetime import datetime, UTC
 from os import environ
 from pathlib import Path
-from time import sleep
+from time import sleep, time
 from typing import Tuple, Optional
 
 import pyatmo.helpers
@@ -42,8 +42,8 @@ class BatchingCallback(object):
             log.debug(f"Batch: {conf}, Data: {data}, Exception: {exception}")
 
 
-def parse_config(_config_file=None):
-    _config = configparser.ConfigParser(interpolation=None)
+def parse_config(_config_file=None) -> Tuple[ConfigParser, str]:
+    _config = ConfigParser(interpolation=None)
 
     if _config_file is None:
         _config_file = Path("config.ini")
@@ -51,7 +51,7 @@ def parse_config(_config_file=None):
     if _config_file.exists():
         _config.read(_config_file)
 
-    return _config
+    return _config, _config_file
 
 
 def parse_args():
@@ -103,7 +103,9 @@ def shutdown(_signal):
     running = False
 
 
-def get_authorization(_client_id: str, _client_secret: str, _refresh_token: str) -> Tuple[NetatmoOAuth2, str]:
+def get_authorization(
+    _client_id: str, _client_secret: str, _refresh_token: str, _token_expiration: float = 0
+) -> Tuple[NetatmoOAuth2, str, float]:
     while True:
         try:
             _auth = NetatmoOAuth2(
@@ -111,9 +113,17 @@ def get_authorization(_client_id: str, _client_secret: str, _refresh_token: str)
                 client_secret=_client_secret,
             )
             _auth.extra["refresh_token"] = _refresh_token
-            _result = _auth.refresh_tokens()
+            if _token_expiration < time():
+                _result = _auth.refresh_tokens()
+                _refresh_token = _result.get("refresh_token")
+                _token_expiration = _result.get("expire_in") + time()
 
-            return _auth, _result.get("refresh_token")
+                if "netatmo" in config:
+                    config["netatmo"]["refresh_token"] = _refresh_token
+                    with open(config_file, "w") as f:
+                        config.write(f)
+
+            return _auth, _refresh_token, _token_expiration
         except ApiError:
             log.error("No credentials supplied. No Netatmo Account available.")
             exit(1)
@@ -176,6 +186,7 @@ if __name__ == "__main__":
     client_id = None
     client_secret = None
     refresh_token = None
+    token_expiration = 0
     influx_host = None
     influx_port = None
     influx_bucket = None
@@ -185,7 +196,7 @@ if __name__ == "__main__":
     influx_debug = False
     influx_callback = BatchingCallback()
     args = parse_args()
-    config = parse_config(args.config)
+    config, config_file = parse_config(args.config)
 
     if get_environ("TERM", None):
         # noinspection PyTypeChecker
@@ -232,7 +243,9 @@ if __name__ == "__main__":
 
     log.info("Starting Netatmo Crawler...")
     while running:
-        authorization, refresh_token = get_authorization(client_id, client_secret, refresh_token)
+        authorization, refresh_token, token_expiration = get_authorization(
+            client_id, client_secret, refresh_token, token_expiration
+        )
         try:
             weatherData = WeatherStationData(authorization)
             weatherData.update()
