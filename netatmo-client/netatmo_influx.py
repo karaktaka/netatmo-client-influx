@@ -7,7 +7,7 @@ import signal
 import sys
 from configparser import ConfigParser
 from datetime import datetime, UTC
-from os import environ
+from os import getenv
 from pathlib import Path
 from time import sleep, time
 from typing import Tuple, Optional
@@ -56,18 +56,10 @@ def parse_config(_config_file=None) -> Tuple[ConfigParser, str]:
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--file", dest="config", type=str, nargs=1, required=False)
+    parser.add_argument("-f", "--file", dest="config_file", type=str, nargs=1, required=False)
     parser.add_argument("-v", "--verbose", dest="verbosity", action="count", default=0)
 
     return parser.parse_args()
-
-
-def get_environ(_name, _def_val):
-    _env_val = _def_val
-    if environ.get(_name):
-        _env_val = environ.get(_name)
-
-    return _env_val
 
 
 def set_logging_level(_verbosity, _level, _logger=None):
@@ -79,7 +71,9 @@ def set_logging_level(_verbosity, _level, _logger=None):
     if _verbosity > 0:
         _level = _switcher.get(_verbosity)
 
-    _fmt = logging.Formatter("%(asctime)s - %(levelname)s:%(message)s", datefmt="%d.%m.%Y %H:%M:%S")
+    _fmt = logging.Formatter(
+        "%(asctime)s - %(module)s:%(lineno)d - %(levelname)s:%(message)s", datefmt="%d.%m.%Y %H:%M:%S"
+    )
 
     # Basic Setting for Debugging
     pyatmo.helpers.LOG.setLevel(_level)
@@ -196,9 +190,9 @@ if __name__ == "__main__":
     influx_debug = False
     influx_callback = BatchingCallback()
     args = parse_args()
-    config, config_file = parse_config(args.config)
+    config, config_file = parse_config(args.config_file)
 
-    if get_environ("TERM", None):
+    if getenv("TERM", None):
         # noinspection PyTypeChecker
         signal.signal(signal.SIGTERM, shutdown)
         # noinspection PyTypeChecker
@@ -223,18 +217,15 @@ if __name__ == "__main__":
         influx_org = config["influx"].get("influx_org", None)
 
     # Environment Variables takes precedence over config if set
-    client_id = get_environ("NETATMO_CLIENT_ID", client_id)
-    client_secret = get_environ("NETATMO_CLIENT_SECRET", client_secret)
-    refresh_token = get_environ("NETATMO_REFRESH_TOKEN", refresh_token)
-    influx_host = get_environ("INFLUX_HOST", influx_host)
-    influx_port = get_environ("INFLUX_PORT", influx_port)
-    influx_bucket = get_environ("INFLUX_BUCKET", influx_bucket)
-    influx_protocol = get_environ("INFLUX_PROTOCOL", influx_protocol)
-    influx_token = get_environ("INFLUX_TOKEN", influx_token)
-    influx_org = get_environ("INFLUX_ORG", influx_org)
-    interval = int(get_environ("INTERVAL", interval))
-    loglevel = get_environ("LOGLEVEL", loglevel)
-    debug_batch = get_environ("DEBUG_BATCH", debug_batch)
+    influx_host = getenv("INFLUX_HOST", influx_host)
+    influx_port = getenv("INFLUX_PORT", influx_port)
+    influx_bucket = getenv("INFLUX_BUCKET", influx_bucket)
+    influx_protocol = getenv("INFLUX_PROTOCOL", influx_protocol)
+    influx_token = getenv("INFLUX_TOKEN", influx_token)
+    influx_org = getenv("INFLUX_ORG", influx_org)
+    interval = int(getenv("INTERVAL", interval))
+    loglevel = getenv("LOGLEVEL", loglevel)
+    debug_batch = getenv("DEBUG_BATCH", debug_batch)
 
     # set logging level
     log = set_logging_level(args.verbosity, loglevel)
