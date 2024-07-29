@@ -9,7 +9,7 @@ from configparser import ConfigParser
 from datetime import datetime, UTC
 from os import getenv
 from pathlib import Path
-from time import sleep, time
+from time import sleep
 from typing import Tuple, Optional
 
 import pyatmo.helpers
@@ -107,15 +107,13 @@ def get_authorization(
                 client_secret=_client_secret,
             )
             _auth.extra["refresh_token"] = _refresh_token
-            if _token_expiration < time():
-                _result = _auth.refresh_tokens()
-                _refresh_token = _result.get("refresh_token")
-                _token_expiration = _result.get("expire_in") + time()
+            _result = _auth.refresh_tokens()
+            _refresh_token = _result.get("refresh_token")
 
-                if "netatmo" in config:
-                    config["netatmo"]["refresh_token"] = _refresh_token
-                    with open(config_file, "w") as f:
-                        config.write(f)
+            if "netatmo" in config:
+                config["netatmo"]["refresh_token"] = _refresh_token
+                with open(config_file, "w") as f:
+                    config.write(f)
 
             return _auth, _refresh_token, _token_expiration
         except ApiError:
