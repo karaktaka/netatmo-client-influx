@@ -1,14 +1,10 @@
-version: '3'
-
 services:
   netatmo-influx:
     image: ghcr.io/karaktaka/netatmo-client-influx
-    container_name: netatmo-influx
     restart: unless-stopped
     environment:
       - NETATMO_CLIENT_ID=
       - NETATMO_CLIENT_SECRET=
-      - NETATMO_REFRESH_TOKEN=
       - INFLUX_HOST=
       - INFLUX_PORT=
       - INFLUX_BUCKET=
@@ -17,3 +13,5 @@ services:
       - INFLUX_ORG=
       - INTERVAL=600
       - LOGLEVEL=INFO
+    volumes:
+      - "./config.ini:/app/config.ini:rw"
