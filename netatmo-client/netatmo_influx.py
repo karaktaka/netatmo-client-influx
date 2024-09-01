@@ -110,10 +110,14 @@ def get_authorization(
             _result = _auth.refresh_tokens()
             _refresh_token = _result.get("refresh_token")
 
-            if "netatmo" in config:
-                config["netatmo"]["refresh_token"] = _refresh_token
-                with open(config_file, "w") as f:
+            override = ConfigParser(interpolation=None)
+            override["netatmo"] = {"refresh_token": _refresh_token}
+            with open(config_file, "w") as f:
+                if "netatmo" in config:
+                    config["netatmo"]["refresh_token"] = _refresh_token
                     config.write(f)
+                else:
+                    override.write(f)
 
             return _auth, _refresh_token, _token_expiration
         except ApiError:
@@ -204,7 +208,6 @@ if __name__ == "__main__":
     if "netatmo" in config:
         client_id = config["netatmo"].get("client_id", None)
         client_secret = config["netatmo"].get("client_secret", None)
-        refresh_token = config["netatmo"].get("refresh_token", None)
 
     if "influx" in config:
         influx_host = config["influx"].get("influx_host", "localhost")
@@ -215,15 +218,22 @@ if __name__ == "__main__":
         influx_org = config["influx"].get("influx_org", None)
 
     # Environment Variables takes precedence over config if set
+    # global
+    interval = int(getenv("INTERVAL", interval))
+    loglevel = getenv("LOGLEVEL", loglevel)
+    debug_batch = getenv("DEBUG_BATCH", debug_batch)
+    # netatmo
+    client_id = getenv("NETATMO_CLIENT_ID", client_id)
+    client_secret = getenv("NETATMO_CLIENT_SECRET", client_secret)
+    # refresh_token needs to be persisted in the config, but can be set as env var for first run
+    refresh_token = config.get("netatmo", "refresh_token", fallback=getenv("NETATMO_REFRESH_TOKEN"))
+    # influx
     influx_host = getenv("INFLUX_HOST", influx_host)
     influx_port = getenv("INFLUX_PORT", influx_port)
     influx_bucket = getenv("INFLUX_BUCKET", influx_bucket)
     influx_protocol = getenv("INFLUX_PROTOCOL", influx_protocol)
     influx_token = getenv("INFLUX_TOKEN", influx_token)
     influx_org = getenv("INFLUX_ORG", influx_org)
-    interval = int(getenv("INTERVAL", interval))
-    loglevel = getenv("LOGLEVEL", loglevel)
-    debug_batch = getenv("DEBUG_BATCH", debug_batch)
 
     # set logging level
     log = set_logging_level(args.verbosity, loglevel)
