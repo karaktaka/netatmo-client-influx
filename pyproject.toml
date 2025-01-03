@@ -1,6 +1,6 @@
 [project]
 name = "netatmo-client-influx"
-version = "3.5.2"
+version = "x.x.x"
 description = "A basic crawler for netatmo api"
 authors = [{ name = "Dennis Bernardy", email = "bernardyd@gmail.com" }]
 readme = "README.md"
