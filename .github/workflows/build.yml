@@ -51,5 +51,5 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
-          cache-from: type=registry,ref=ghcr.io/karaktaka/netatmo-client-influx:buildcache
-          cache-to: type=registry,ref=ghcr.io/karaktaka/netatmo-client-influx:buildcache,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
