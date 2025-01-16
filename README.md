@@ -5,6 +5,9 @@ Netatmo Weather Station dashboard for Grafana
 
 ![Screenshot](./screenshot.png)
 
+## Prometheus
+Now also available for Prometheus -> [netatmo-exporter](https://github.com/karaktaka/netatmo-exporter)
+
 ## InfluxDB 2.0
 This Version is for InfluxDB 2.0 only.
 
