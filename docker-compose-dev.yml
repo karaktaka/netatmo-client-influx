@@ -31,7 +31,7 @@ services:
       - INFLUX_PROTOCOL=http
       - INFLUX_TOKEN=myverysecuretoken
     volumes:
-      - ./src/config.ini:/app/config.ini:rw
+      - ./src/config.yaml:/app/config.yaml:rw
     depends_on:
       influxdb:
         condition: service_healthy

@@ -58,7 +58,7 @@ LOGLEVEL=INFO
 
 ```bash
 # cat /etc/cron.d/netatmo
-*/10 * * * * root  /usr/local/bin/netatmo_influx.py > /dev/null 2>&1
+*/10 * * * * root  /usr/local/bin/client.py > /dev/null 2>&1
 ```
 
 You can also use docker to run the script. Either build it yourself or use my prebuilt containers from [GitHub Container Registry](https://github.com/karaktaka/netatmo-client-influx/pkgs/container/netatmo-client-influx).
