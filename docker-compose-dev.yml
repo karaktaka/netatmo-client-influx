@@ -30,7 +30,7 @@ services:
       - INTERVAL=600
       - LOGLEVEL=INFO
     volumes:
-      - "./config.ini:/app/config.ini:rw"
+      - "./config.yaml:/app/config.yaml:rw"
     depends_on:
       influxdb:
         condition: service_healthy

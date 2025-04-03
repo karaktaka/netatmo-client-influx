@@ -32,6 +32,6 @@ RUN adduser -D -H -h /app -u "${UID}" appuser
 USER appuser
 
 COPY --from=venv --chown=${UID} /app/.venv /app/.venv
-COPY --chown=${UID} netatmo-client/netatmo_influx.py /app/
+COPY --chown=${UID} netatmo-client/client.py /app/
 
-CMD [ "python", "netatmo_influx.py" ]
+CMD [ "python", "client.py" ]

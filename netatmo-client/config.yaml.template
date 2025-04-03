@@ -1,0 +1,15 @@
+interval: 600
+loglevel: "INFO"
+
+netatmo:
+  client_id: ""
+  client_secret: ""
+  refresh_token: ""
+
+influx:
+  influx_host: ""
+  influx_port: ""
+  influx_bucket: ""
+  influx_protocol: ""
+  influx_token: ""
+  influx_org: ""
