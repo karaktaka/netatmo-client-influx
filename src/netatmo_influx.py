@@ -10,9 +10,10 @@ from datetime import datetime, UTC
 from os import getenv
 from pathlib import Path
 from time import sleep
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict, Union
 
 import pyatmo.helpers
+import yaml
 from influxdb_client import InfluxDBClient, WritePrecision
 from influxdb_client.client.exceptions import InfluxDBError
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
@@ -48,16 +49,24 @@ class BatchingCallback(object):
             log.debug(f"Batch: {conf}, Data: {data}, Exception: {exception}")
 
 
-def parse_config(_config_file: str = None) -> Tuple[ConfigParser, str]:
+def parse_config(_config_file=None) -> Tuple[Dict, str]:
     _config = ConfigParser(interpolation=None)
 
     if _config_file is None:
-        _config_file = Path(__file__).parent / "config.ini"
+        _config_file = Path(__file__).parent / "config.yaml"
 
-    if _config_file.exists():
-        _config.read(_config_file)
-
-    return _config, _config_file
+    try:
+        with open(_config_file, "r") as _file:
+            _config = yaml.safe_load(_file)
+    except FileNotFoundError:
+        log.error("Config file does not exist.")
+    except yaml.YAMLError as _error:
+        if hasattr(_error, "problem_mark"):
+            _mark = _error.problem_mark
+            log.error("Error in configuration")
+            log.error(f"Error position: ({_mark.line + 1}:{_mark.column + 1})")
+    else:
+        return _config, _config_file
 
 
 def parse_args():
@@ -98,6 +107,19 @@ def set_logging_level(_verbosity, _level, _logger=None):
     return _logger
 
 
+def safe_list_get(_input_list: list, _idx: int, _default=None) -> Optional[str | int | float]:
+    try:
+        return _input_list[_idx]
+    except IndexError:
+        return _default
+
+
+def check_value(_val: Union[float, int, str]) -> Union[float, str]:
+    if type(_val) is int:
+        return float(_val)
+    return _val
+
+
 def shutdown(_signal):
     global running
     running = False
@@ -116,14 +138,14 @@ def get_authorization(
             _result = _auth.refresh_tokens()
             _refresh_token = _result.get("refresh_token")
 
-            override = ConfigParser(interpolation=None)
-            override["netatmo"] = {"refresh_token": _refresh_token}
+            override = {"netatmo": {"refresh_token": _refresh_token}}
             with open(config_file, "w") as f:
                 if "netatmo" in config:
                     config["netatmo"]["refresh_token"] = _refresh_token
-                    config.write(f)
+                    f.write(yaml.dump(config))
                 else:
-                    override.write(f)
+                    f.write(yaml.dump(override))
+                log.info(f"Refresh Token updated. New Token is: {_refresh_token}")
 
             return _auth, _refresh_token, _token_expiration
         except ApiError:
@@ -133,15 +155,8 @@ def get_authorization(
             log.error(f"Can't connect to Netatmo API. Retrying in {interval} second(s)...")
             pass
         except InvalidGrantError:
-            log.error("Refresh Token expired!")
+            log.error("Refresh Token expired! Please generate a new one in the Developer Console.")
             exit(1)
-
-
-def safe_list_get(_input_list: list, _idx: int, _default=None) -> Optional[str | int | float]:
-    try:
-        return _input_list[_idx]
-    except IndexError:
-        return _default
 
 
 def get_sensor_data(_sensor_data: dict, _station_name: str, _module_name: str, _module_type: str) -> list:
@@ -174,17 +189,8 @@ def get_sensor_data(_sensor_data: dict, _station_name: str, _module_name: str, _
     return _measurements
 
 
-def check_value(_val: [float | int | str]) -> [float | str]:
-    if type(_val) is int:
-        return float(_val)
-    return _val
-
-
 if __name__ == "__main__":
     running = True
-    interval = None
-    loglevel = None
-    debug_batch = False
     client_id = None
     client_secret = None
     refresh_token = None
@@ -206,14 +212,14 @@ if __name__ == "__main__":
         # noinspection PyTypeChecker
         signal.signal(signal.SIGINT, shutdown)
 
-    if "global" in config:
-        interval = int(config["global"].get("interval", "300"))  # interval in seconds; default are 5 Minutes
-        loglevel = config["global"].get("loglevel", "INFO")  # set loglevel by Name
-        debug_batch = config["global"].get("debug_batch", "False")  # set loglevel for batching (influx)
+    interval = int(config.get("interval", "300"))  # interval in seconds; default are 5 Minutes
+    loglevel = config.get("loglevel", "INFO")  # set loglevel by Name
+    debug_batch = config.get("debug_batch", "False")  # set loglevel for batching (influx)
 
     if "netatmo" in config:
-        client_id = config["netatmo"].get("client_id", None)
-        client_secret = config["netatmo"].get("client_secret", None)
+        client_id = config.get("netatmo").get("client_id", None)
+        client_secret = config.get("netatmo").get("client_secret", None)
+        refresh_token = config.get("netatmo").get("refresh_token", None)
 
     if "influx" in config:
         influx_host = config["influx"].get("influx_host", "localhost")
@@ -232,7 +238,7 @@ if __name__ == "__main__":
     client_id = getenv("NETATMO_CLIENT_ID", client_id)
     client_secret = getenv("NETATMO_CLIENT_SECRET", client_secret)
     # refresh_token needs to be persisted in the config, but can be set as env var for first run
-    refresh_token = config.get("netatmo", "refresh_token", fallback=getenv("NETATMO_REFRESH_TOKEN"))
+    refresh_token = getenv("NETATMO_REFRESH_TOKEN", refresh_token)
     # influx
     influx_host = getenv("INFLUX_HOST", influx_host)
     influx_port = getenv("INFLUX_PORT", influx_port)
