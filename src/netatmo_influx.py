@@ -5,7 +5,6 @@ import argparse
 import logging
 import signal
 import sys
-from configparser import ConfigParser
 from datetime import datetime, UTC
 from os import getenv
 from pathlib import Path
@@ -222,12 +221,12 @@ if __name__ == "__main__":
         refresh_token = config.get("netatmo").get("refresh_token", None)
 
     if "influx" in config:
-        influx_host = config["influx"].get("influx_host", "localhost")
-        influx_port = config["influx"].get("influx_port", "8086")
-        influx_bucket = config["influx"].get("influx_bucket", "netatmo")
-        influx_protocol = config["influx"].get("influx_protocol", "http")
-        influx_token = config["influx"].get("influx_token", None)
-        influx_org = config["influx"].get("influx_org", None)
+        influx_host = config.get("influx").get("influx_host", "localhost")
+        influx_port = config.get("influx").get("influx_port", "8086")
+        influx_bucket = config.get("influx").get("influx_bucket", "netatmo")
+        influx_protocol = config.get("influx").get("influx_protocol", "http")
+        influx_token = config.get("influx").get("influx_token", None)
+        influx_org = config.get("influx").get("influx_org", "-")
 
     # Environment Variables takes precedence over config if set
     # global
@@ -252,7 +251,7 @@ if __name__ == "__main__":
     if (loglevel == "DEBUG" or args.verbosity == 3) and debug_batch == "True":
         influx_debug = True
 
-    log.info("Starting Netatmo Crawler...")
+    log.info("Netatmo Crawler ready...")
     while running:
         authorization, refresh_token, token_expiration = get_authorization(
             client_id, client_secret, refresh_token, token_expiration
@@ -333,7 +332,7 @@ if __name__ == "__main__":
 
                         # noinspection PyTypeChecker
                         write_client.write(
-                            bucket=influx_bucket, org=influx_org, record=measurements, write_precision=WritePrecision.S
+                            bucket=influx_bucket, record=measurements, write_precision=WritePrecision.S
                         )
         except ApiError as error:
             log.error(error)
