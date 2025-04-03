@@ -226,7 +226,7 @@ if __name__ == "__main__":
         influx_bucket = config.get("influx").get("influx_bucket", "netatmo")
         influx_protocol = config.get("influx").get("influx_protocol", "http")
         influx_token = config.get("influx").get("influx_token", None)
-        influx_org = config.get("influx").get("influx_org", "-")
+        influx_org = config.get("influx").get("influx_org", None)
 
     # Environment Variables takes precedence over config if set
     # global
@@ -332,7 +332,7 @@ if __name__ == "__main__":
 
                         # noinspection PyTypeChecker
                         write_client.write(
-                            bucket=influx_bucket, record=measurements, write_precision=WritePrecision.S
+                            bucket=influx_bucket, org=influx_org, record=measurements, write_precision=WritePrecision.S
                         )
         except ApiError as error:
             log.error(error)
