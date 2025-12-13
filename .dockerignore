@@ -30,7 +30,7 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
-**/config.ini
+src/config.yaml
 **/config.ini.template
 LICENSE
 README.md

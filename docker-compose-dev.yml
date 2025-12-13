@@ -32,6 +32,10 @@ services:
       - INFLUX_TOKEN=myverysecuretoken
     volumes:
       - ./src/config.yaml:/app/config.yaml:rw
+      - data:/app/data:rw
     depends_on:
       influxdb:
         condition: service_healthy
+
+volumes:
+  data:

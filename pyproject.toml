@@ -8,9 +8,9 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "pyatmo>=7.6,<8",
+    "requests",
     "influxdb-client>=1,<2",
-    "aiohttp>=3.10.11",
+    "pyyaml",
 ]
 
 [tool.ruff]

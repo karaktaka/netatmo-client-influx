@@ -170,3 +170,4 @@ cython_debug/
 
 **/config.yaml
 **/.env
+**/token.json
