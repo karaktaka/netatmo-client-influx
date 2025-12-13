@@ -1,16 +1,20 @@
 [project]
 name = "netatmo-client-influx"
-version = "x.x.x"
+version = "3.7.0"
 description = "A basic crawler for netatmo api"
-authors = [{ name = "Dennis Bernardy", email = "bernardyd@gmail.com" }]
+authors = [
+    { name = "Dennis Bernardy", email = "dennis@ethernerd.net" }
+]
 readme = "README.md"
-requires-python = ">=3.12"
-packages = [{include = "netatmo-client"}]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pyatmo>=7.6,<8",
+    "influxdb-client>=1,<2",
+    "aiohttp>=3.10.11",
+]
 
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+[tool.ruff]
+line-length = 120
 
-[tool.black]
-target-version = ["py312"]
-line-length = "120"
+[tool.ruff.format]
+line-ending = "lf"

@@ -1,25 +1,23 @@
-name: Lint
+name: Check Code Formatting
 
 on:
   pull_request:
     branches:
-      - main
+      - 'main'
 
 jobs:
-  lint:
+  format-check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-    - name: Lint with flake8
-      uses: py-actions/flake8@v2
-      with:
-        path: "./netatmo-client"
-    - name: Lint with black
-      uses: psf/black@stable
-      with:
-        src: "./netatmo-client"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/ruff-action@v3
+        with:
+          args: "--version"
+      - run: ruff check --diff
+      - run: ruff format --check --diff
