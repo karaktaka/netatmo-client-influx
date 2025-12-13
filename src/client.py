@@ -6,11 +6,11 @@ import json
 import logging
 import signal
 import sys
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from os import getenv
 from pathlib import Path
 from time import sleep
-from typing import Tuple, Optional, Dict, Union
+from typing import Dict, Optional, Union
 
 import requests
 import yaml
@@ -29,13 +29,13 @@ from netatmo_api import (
 
 class BatchingCallback(object):
     @staticmethod
-    def success(conf: (str, str, str), data: str):
+    def success(conf: tuple[str, str, str], data: str):
         log.info(f"Written batch with size {len(data)}.")
         if influx_debug:
             log.debug(f"Batch: {conf}, Data: {data}")
 
     @staticmethod
-    def error(conf: (str, str, str), data: str, exception: InfluxDBError):
+    def error(conf: tuple[str, str, str], data: str, exception: InfluxDBError):
         if type(exception) is InfluxDBError and exception.response is not None:
             log.error(f"Cannot write batch due: {exception.response.status} - {exception.response.reason}")
         else:
@@ -44,7 +44,7 @@ class BatchingCallback(object):
             log.debug(f"Batch: {conf}, Data: {data}, Exception: {exception}")
 
     @staticmethod
-    def retry(conf: (str, str, str), data: str, exception: InfluxDBError):
+    def retry(conf: tuple[str, str, str], data: str, exception: InfluxDBError):
         if type(exception) is InfluxDBError and exception.response is not None:
             log.warning(
                 f"Retryable error occurs for batch, retry: {exception.response.status} - {exception.response.reason}"
@@ -240,9 +240,7 @@ if __name__ == "__main__":
 
     log.info("Netatmo Crawler ready...")
     while running:
-        authorization = get_authorization(
-            client_id, client_secret, refresh_token
-        )
+        authorization = get_authorization(client_id, client_secret, refresh_token)
         try:
             api = NetatmoWeatherStationAPI(authorization)
             api.get_stations_data()
