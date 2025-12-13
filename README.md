@@ -16,34 +16,42 @@ If you want to upgrade your Docker InfluxDB to 2.0, there is a guide available [
 ## Installation
 
 * Create a [Netatmo developer account](https://dev.netatmo.com/apidocumentation) and create an app there.
-* Generate a refresh token in your app, scroll down to the "Token generator" and generate a new one with the appropriate scopes.
-* Create file called "config" or use Environment Variables and fill in your NETATMO_CLIENT_ID, NETATMO_CLIENT_SECRET and NETATMO_REFRESH_TOKEN.
-  * Because of recent changes `refresh_token` needs to be added to a configfile as it needs to be re-generated during runtime and will be written to the config.
+* Generate a refresh token in your app, scroll down to the "Token generator" and generate a new one with the appropriate
+  scopes.
+    * Scope "read_station" is sufficient for Weather Station data.
+* Create a file called "config.yaml" or use Environment Variables and fill in your NETATMO_CLIENT_ID,
+  NETATMO_CLIENT_SECRET and REFRESH_TOKEN.
+    * An example config.yaml is provided below.
+* Because of recent changes token information will be written to a local file called "token.json" next to the script.
+  Make sure the user running the script has write permissions to that file.
+    * If running via Docker, mount a volume to /app/token.json and the token file will be stored there.
+    * You will find an example in the docker-compose.yml file.
 * Environment Variables take precedence over everything else and will overwrite your config vars.
-* The default is to search for a config file right next to the script, but you can point to any config file with the "-f" switch.
+* The default is to search for a config file right next to the script, but you can point to any config file with the "
+  -f" switch.
 
-```ini
-[global]
-interval = 600
-loglevel = INFO
+```yaml
+interval: 600
+loglevel: INFO
 
-[netatmo]
-client_id =
-client_secret =
-refresh_token =
+netatmo:
+  client_id: ""
+  client_secret: ""
+  refresh_token: ""
 
-[influx]
-influx_host =
-influx_port =
-influx_bucket =
-influx_protocol =
-influx_token =
-influx_org =
+influx:
+  influx_host: ""
+  influx_port: ""
+  influx_bucket: ""
+  influx_protocol: ""
+  influx_token: ""
+  influx_org: ""
 ```
 
 ```
 NETATMO_CLIENT_ID=
 NETATMO_CLIENT_SECRET=
+REFRESH_TOKEN=
 INFLUX_HOST=
 INFLUX_PORT=
 INFLUX_BUCKET=
