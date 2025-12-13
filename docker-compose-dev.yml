@@ -1,10 +1,16 @@
 services:
   influxdb:
-    image: influxdb:2.7-alpine
+    image: docker.io/influxdb:2-alpine
     restart: unless-stopped
     environment:
-      - INFLUXDB_DB=netatmo
-      - INFLUXDB_HTTP_AUTH_ENABLED=false
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=netatmo
+      - DOCKER_INFLUXDB_INIT_PASSWORD=mysupersecurepassword
+      - DOCKER_INFLUXDB_INIT_ORG=netatmo-org
+      - DOCKER_INFLUXDB_INIT_BUCKET=netatmo
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=myverysecuretoken
+    ports:
+      - "8086:8086"
     healthcheck:
       test: "curl -f http://localhost:8086/ping"
       interval: 5s
@@ -12,25 +18,20 @@ services:
       retries: 5
       start_period: 1m
 
-  netatmo-influx:
+  netatmo-client-influx:
     build:
       context: .
       dockerfile: Dockerfile
-    image: local/netatmo-client-influx
+    image: localhost/netatmo-client-influx
     restart: unless-stopped
     environment:
-      - NETATMO_CLIENT_ID=
-      - NETATMO_CLIENT_SECRET=
       - INFLUX_HOST=influxdb
       - INFLUX_PORT=8086
       - INFLUX_BUCKET=netatmo
       - INFLUX_PROTOCOL=http
-      - INFLUX_TOKEN=
-      - INFLUX_ORG=
-      - INTERVAL=600
-      - LOGLEVEL=INFO
+      - INFLUX_TOKEN=myverysecuretoken
     volumes:
-      - "./config.ini:/app/config.ini:rw"
+      - ./src/config.ini:/app/config.ini:rw
     depends_on:
       influxdb:
         condition: service_healthy
