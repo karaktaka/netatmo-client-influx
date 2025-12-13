@@ -29,24 +29,30 @@ class BatchingCallback(object):
 
     @staticmethod
     def error(conf: (str, str, str), data: str, exception: InfluxDBError):
-        log.error(f"Cannot write batch due: {exception.response.status} - {exception.response.reason}")
+        if type(exception) is InfluxDBError and exception.response is not None:
+            log.error(f"Cannot write batch due: {exception.response.status} - {exception.response.reason}")
+        else:
+            log.error(f"Cannot write batch due: {exception}")
         if influx_debug:
             log.debug(f"Batch: {conf}, Data: {data}, Exception: {exception}")
 
     @staticmethod
     def retry(conf: (str, str, str), data: str, exception: InfluxDBError):
-        log.warning(
-            f"Retryable error occurs for batch, retry: {exception.response.status} - {exception.response.reason}"
-        )
+        if type(exception) is InfluxDBError and exception.response is not None:
+            log.warning(
+                f"Retryable error occurs for batch, retry: {exception.response.status} - {exception.response.reason}"
+            )
+        else:
+            log.warning(f"Retryable error occurs for batch, retry: {exception}")
         if influx_debug:
             log.debug(f"Batch: {conf}, Data: {data}, Exception: {exception}")
 
 
-def parse_config(_config_file=None) -> Tuple[ConfigParser, str]:
+def parse_config(_config_file: str = None) -> Tuple[ConfigParser, str]:
     _config = ConfigParser(interpolation=None)
 
     if _config_file is None:
-        _config_file = Path("config.ini")
+        _config_file = Path(__file__).parent / "config.ini"
 
     if _config_file.exists():
         _config.read(_config_file)

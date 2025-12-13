@@ -1,20 +1,19 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Netatmo-Client" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="Test Client" type="PythonConfigurationType" factoryName="Python">
     <module name="netatmo-client-influx" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
-      <env name="LOGLEVEL" value="DEBUG" />
     </envs>
     <option name="SDK_HOME" value="" />
-    <option name="SDK_NAME" value="Pipenv (netatmo-client-influx)" />
-    <option name="WORKING_DIRECTORY" value="$Projectpath$" />
-    <option name="IS_MODULE_SDK" value="false" />
+    <option name="WORKING_DIRECTORY" value="" />
+    <option name="IS_MODULE_SDK" value="true" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
-    <option name="SCRIPT_NAME" value="netatmo_influx.py" />
+    <option name="RUN_TOOL" value="true" />
+    <option name="SCRIPT_NAME" value="$Sourcepath$/netatmo_influx.py" />
     <option name="PARAMETERS" value="" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
