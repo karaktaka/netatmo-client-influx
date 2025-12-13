@@ -22,4 +22,4 @@ COPY --chown=${UID} pyproject.toml uv.lock src/* /app/
 RUN --mount=type=cache,uid=${UID},target=/app/.cache \
     uv sync --frozen --no-dev
 
-CMD [ "uv", "run", "netatmo_influx.py" ]
+CMD [ "uv", "run", "client.py" ]
