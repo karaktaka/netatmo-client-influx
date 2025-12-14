@@ -108,7 +108,9 @@ def shutdown(_signal):
     running = False
 
 
-def get_sensor_data(_sensor_data: dict, _station_name: str, _module_name: str, _module_type: str) -> list:
+def get_sensor_data(
+    _sensor_data: dict, _home_name: str, _station_name: str, _module_name: str, _module_type: str
+) -> list:
     _measurements = []
     _date_times = {}
 
@@ -126,7 +128,12 @@ def get_sensor_data(_sensor_data: dict, _station_name: str, _module_name: str, _
             _measurements.append(
                 {
                     "measurement": _sensor.lower() if _sensor.lower() != "wifi_status" else "rf_status",
-                    "tags": {"station": _station_name, "module": _module_name, "type": _module_type},
+                    "tags": {
+                        "home": _home_name,
+                        "station": _station_name,
+                        "module": _module_name,
+                        "type": _module_type,
+                    },
                     "fields": {"value": check_value(_value)},
                     "time": (
                         _time
@@ -231,6 +238,7 @@ if __name__ == "__main__":
                         measurements = []
 
                         log.debug(f"Station Data: {station}")
+                        home_name = station.get("home_name", "Unknown")
                         station_name = station.get("station_name", "Unknown")
                         station_module_name = station.get("module_name", "Unknown")
                         station_module_type = station.get("type", "Unknown")
@@ -250,7 +258,7 @@ if __name__ == "__main__":
                             measurements.append(
                                 {
                                     "measurement": key,
-                                    "tags": {"station": station_name, "type": station_module_type},
+                                    "tags": {"home": home_name, "station": station_name, "type": station_module_type},
                                     "fields": {"value": check_value(value)},
                                     "time": int(datetime.now(UTC).timestamp()),
                                 }
@@ -265,7 +273,7 @@ if __name__ == "__main__":
                             station_sensor_data.update({sensor: station.get(sensor)})
 
                         measurements += get_sensor_data(
-                            station_sensor_data, station_name, station_module_name, station_module_type
+                            station_sensor_data, home_name, station_name, station_module_name, station_module_type
                         )
 
                         for module in station.get("modules", []):
@@ -281,7 +289,9 @@ if __name__ == "__main__":
                             for sensor in ["rf_status", "battery_vp", "battery_percent"]:
                                 module_sensor_data.update({sensor: module.get(sensor)})
 
-                            measurements += get_sensor_data(module_sensor_data, station_name, module_name, module_type)
+                            measurements += get_sensor_data(
+                                module_sensor_data, home_name, station_name, module_name, module_type
+                            )
 
                         # noinspection PyTypeChecker
                         write_client.write(
