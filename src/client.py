@@ -243,13 +243,13 @@ if __name__ == "__main__":
                         station_module_name = station.get("module_name", "Unknown")
                         station_module_type = station.get("type", "Unknown")
                         station_place = station.get("place", {})
-                        station_country = station_place.get("country", "Unknown")
-                        station_timezone = station_place.get("timezone", "Unknown")
-                        station_city = station_place.get("city", "Unknown")
                         station_long_lat = station_place.get("location", [])
 
                         station_data = {
                             "altitude": station_place.get("altitude"),
+                            "country": station_place.get("country", "Unknown"),
+                            "city": station_place.get("city", "Unknown"),
+                            "timezone": station_place.get("timezone", "Unknown"),
                             "longitude": safe_list_get(station_long_lat, 0),
                             "latitude": safe_list_get(station_long_lat, 1),
                         }
