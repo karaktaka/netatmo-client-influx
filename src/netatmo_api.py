@@ -6,12 +6,13 @@ Implements OAuth2 token refresh and weather station data fetching.
 
 import json
 import logging
+import time
 from typing import Any, Dict, Optional, Tuple
 
 import requests
 from requests import Response
 
-LOG = logging.getLogger(__name__)
+from helpers import configure_logging
 
 # Netatmo API endpoints
 NETATMO_AUTH_URL = "https://api.netatmo.com/oauth2/authorize"
@@ -55,6 +56,7 @@ class NetatmoAuth:
         client_secret: str,
         refresh_token: str,
         token_file: str,
+        log: logging.Logger,
     ):
         """
         Initialize Netatmo authentication.
@@ -64,21 +66,22 @@ class NetatmoAuth:
             client_secret: OAuth2 client secret from Netatmo developer console
             refresh_token: Initial refresh token (persisted in config)
         """
+        self.log = log
         self.client_id = client_id
         self.client_secret = client_secret
         self.token_file = token_file
         self.refresh_token = refresh_token
         self.access_token: Optional[str] = None
-        self.token_expires_in: Optional[int] = None
+        self.token_expires_at: Optional[float] = None
 
         try:
             with open(self.token_file, "r+") as _f:
                 _token_data = json.load(_f)
                 self.access_token = _token_data.get("access_token")
                 self.refresh_token = _token_data.get("refresh_token")
-                self.token_expires_in = _token_data.get("expiration")
+                self.token_expires_at = _token_data.get("expires_at")
         except (FileNotFoundError, json.JSONDecodeError):
-            LOG.info("No existing token file found, will create a new one upon refresh.")
+            self.log.info("No existing token file found, will create a new one upon refresh.")
 
     def refresh(self) -> Tuple[str, str, Optional[int]]:
         """
@@ -91,7 +94,7 @@ class NetatmoAuth:
             NetatmoAuthError: If token refresh fails
         """
         try:
-            LOG.debug("Refreshing Netatmo access token...")
+            self.log.debug("Refreshing Netatmo access token...")
 
             payload = {
                 "grant_type": "refresh_token",
@@ -122,22 +125,24 @@ class NetatmoAuth:
 
             token_data = response.json()
             self.access_token = token_data.get("access_token")
-            self.token_expires_in = token_data.get("expires_in")
+            expires_in = token_data.get("expires_in")
+            # Calculate absolute expiration timestamp
+            self.token_expires_at = time.time() + expires_in if expires_in else None
             new_refresh_token = token_data.get("refresh_token", self.refresh_token)
 
             if new_refresh_token != self.refresh_token:
-                LOG.info("Refresh token updated")
+                self.log.info("Refresh token updated")
                 self.refresh_token = new_refresh_token
 
             _token = {
                 "access_token": self.access_token,
                 "refresh_token": self.refresh_token,
-                "expiration": self.token_expires_in,
+                "expiration": self.token_expires_at,
             }
             with open(self.token_file, "w") as _f:
                 _f.write(json.dumps(_token, indent=2))
 
-            return self.access_token, self.refresh_token, self.token_expires_in
+            return self.access_token, self.refresh_token, self.token_expires_at
 
         except requests.exceptions.RequestException as e:
             raise NetatmoAuthError(f"Failed to refresh token: {e}") from e
@@ -145,7 +150,13 @@ class NetatmoAuth:
     @property
     def headers(self) -> Dict[str, str]:
         """Get authorization headers for API requests."""
-        if not self.access_token or (self.token_expires_in and self.token_expires_in <= 60):
+        # Check if token is expired or expires within 60 seconds
+        time_until_expiration = float("inf")
+        if self.token_expires_at is not None:
+            time_until_expiration = self.token_expires_at - time.time()
+            self.log.debug(f"Time until token expiration: {time_until_expiration} seconds")
+
+        if not self.access_token or time_until_expiration <= 60:
             self.refresh()
 
         return {
@@ -161,13 +172,14 @@ class NetatmoWeatherStationAPI:
     Handles data fetching from Netatmo Weather Station API.
     """
 
-    def __init__(self, auth: NetatmoAuth):
+    def __init__(self, auth: NetatmoAuth, log: logging.Logger):
         """
         Initialize the Weather Station API client.
 
         Args:
             auth: NetatmoAuth instance for authentication
         """
+        self.log = log
         self.auth = auth
         self.stations_data: Dict[str, Any] = {}
         self.stations_status: Dict[str, Any] = {}
@@ -183,7 +195,7 @@ class NetatmoWeatherStationAPI:
             NetatmoAPIError: If API request fails
         """
         try:
-            LOG.debug("Fetching stations data from Netatmo API...")
+            self.log.debug("Fetching stations data from Netatmo API...")
 
             response = requests.post(
                 NETATMO_STATIONS_DATA_ENDPOINT,
@@ -196,7 +208,7 @@ class NetatmoWeatherStationAPI:
             data = response.json()
             self.stations_data = data.get("body", {}).get("devices", [])
 
-            LOG.debug(f"Received data for {len(self.stations_data)} station(s)")
+            self.log.debug(f"Received data for {len(self.stations_data)} station(s)")
             return data
 
         except requests.exceptions.RequestException as e:
@@ -299,3 +311,38 @@ class NetatmoWeatherStationAPI:
                     raise NetatmoAPIError(f"API error: {error}")
         except ValueError:
             pass
+
+
+class NetatmoAPI(NetatmoWeatherStationAPI):
+    """
+    Combined Netatmo API client for authentication and data fetching.
+    """
+
+    def __init__(
+        self,
+        client_id: str,
+        client_secret: str,
+        refresh_token: str,
+        token_file: str,
+        log_level: str = "INFO",
+    ):
+        """
+        Initialize the combined Netatmo API client.
+
+        Args:
+            client_id: OAuth2 client ID from Netatmo developer console
+            client_secret: OAuth2 client secret from Netatmo developer console
+            refresh_token: Initial refresh token (persisted in config)
+            token_file: Path to the file where tokens are stored
+        """
+        logger = logging.getLogger(__name__)
+        self.log = configure_logging(logger, log_level)
+
+        auth = NetatmoAuth(
+            client_id=client_id,
+            client_secret=client_secret,
+            refresh_token=refresh_token,
+            token_file=token_file,
+            log=self.log,
+        )
+        super().__init__(auth=auth, log=self.log)
