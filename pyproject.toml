@@ -6,10 +6,10 @@ authors = [
     { name = "Dennis Bernardy", email = "dennis@ethernerd.net" }
 ]
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.12"
 dependencies = [
     "requests",
-    "influxdb-client>=1,<2",
+    "influxdb-client",
     "pyyaml",
 ]
 
