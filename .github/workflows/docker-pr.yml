@@ -1,0 +1,34 @@
+name: Validate Docker Build (PR)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "src/**"
+      - ".github/workflows/docker-pr.yml"
+
+jobs:
+  validate:
+    name: Validate Docker Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: netatmo-client-influx:smoke-test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
