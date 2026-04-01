@@ -1,6 +1,7 @@
 > **Note:** This project has moved to [Codeberg](https://codeberg.org/karaktaka/netatmo-client-influx).
-> This GitHub repository is no longer actively maintained.> **Note:** This project has moved to [Codeberg](https://codeberg.org/karaktaka/netatmo-client-influx).
-> This GitHub repository is no longer actively maintained.# netatmo-client-influx
+> This GitHub repository is no longer actively maintained.
+
+# netatmo-client-influx
 ![pyatmo](./pyatmo.png)
 
 Netatmo Weather Station dashboard for Grafana
